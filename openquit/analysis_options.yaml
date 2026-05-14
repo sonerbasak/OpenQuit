@@ -1,0 +1,20 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Exclude all generated files from analysis warnings
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/core/di/injection.config.dart"
+  errors:
+    # Treat experimental Isar API warnings as info (they're in generated code)
+    experimental_member_use: ignore
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    always_declare_return_types: true
+    avoid_empty_else: true
+    avoid_relative_lib_imports: true
+    cancel_subscriptions: true
+    close_sinks: true
