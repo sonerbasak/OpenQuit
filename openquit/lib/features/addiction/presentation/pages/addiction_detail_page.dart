@@ -13,7 +13,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../domain/entities/addiction_stats.dart';
-import '../cubit/addiction_list/addiction_list_cubit.dart';
 import '../cubit/addiction_stats/addiction_stats_cubit.dart';
 import '../cubit/relapse/relapse_cubit.dart';
 import '../widgets/milestone_celebration.dart';

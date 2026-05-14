@@ -72,9 +72,7 @@ class _SobrietyChartState extends State<SobrietyChart> {
               ),
               // Toggle money/hours
               _ToggleChip(
-                label: _showMoney
-                    ? '${widget.currencySymbol}'
-                    : 'h',
+                label: _showMoney ? widget.currencySymbol : 'h',
                 onTap: () => setState(() => _showMoney = !_showMoney),
               ),
               const SizedBox(width: 8),
@@ -163,8 +161,8 @@ class _SobrietyChartState extends State<SobrietyChart> {
                 borderData: FlBorderData(show: false),
                 barGroups: bars,
               ),
-                swapAnimationDuration: const Duration(milliseconds: 400),
-                swapAnimationCurve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
             ),
           ),
         ],
