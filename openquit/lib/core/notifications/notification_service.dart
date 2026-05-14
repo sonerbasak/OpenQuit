@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:injectable/injectable.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -23,7 +24,7 @@ class NotificationService {
     if (_initialized) return;
 
     tz_data.initializeTimeZones();
-    _setLocalTimezone();
+    await _setLocalTimezone();
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings(
@@ -40,19 +41,14 @@ class NotificationService {
     _initialized = true;
   }
 
-  void _setLocalTimezone() {
+  Future<void> _setLocalTimezone() async {
     try {
-      final offsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
-      // Etc/GMT ters işaret kullanır: UTC+3 → Etc/GMT-3
-      final hours = (offsetMinutes / 60).truncate();
-      final tzName = 'Etc/GMT${hours > 0 ? '-' : '+'}${hours.abs()}';
-      try {
-        tz.setLocalLocation(tz.getLocation(tzName));
-        return;
-      } catch (_) {}
-      // Fallback: UTC
-      tz.setLocalLocation(tz.UTC);
+      // flutter_timezone ile cihazın gerçek timezone adını al
+      // örn. "Europe/Istanbul", "America/New_York"
+      final tzName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzName));
     } catch (_) {
+      // Fallback: UTC
       tz.setLocalLocation(tz.UTC);
     }
   }
@@ -142,18 +138,26 @@ class NotificationService {
   }) async {
     if (!_initialized) await init();
 
+    // Önce mevcut schedule'ı iptal et
     await _plugin.cancel(_dailyNotifId);
 
-    final now = DateTime.now();
-    var scheduled = DateTime(now.year, now.month, now.day, hour, minute);
-    if (scheduled.isBefore(now)) {
+    // Bir sonraki tetiklenme zamanını hesapla
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+
+    // Eğer bugünkü saat geçtiyse yarına al
+    if (scheduled.isBefore(now.add(const Duration(seconds: 5)))) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
-    final tzScheduled = tz.TZDateTime.from(scheduled, tz.local);
     final quote = _randomMotivation();
-
-    // Exact alarm varsa exact, yoksa inexact kullan — her ikisi de çalışır
     final hasExact = await _hasExactAlarmPermission();
     final scheduleMode = hasExact
         ? AndroidScheduleMode.exactAllowWhileIdle
@@ -163,7 +167,7 @@ class NotificationService {
       _dailyNotifId,
       '💪 Stay strong today!',
       quote,
-      tzScheduled,
+      scheduled,
       NotificationDetails(
         android: AndroidNotificationDetails(
           _channelMotivation,
@@ -181,6 +185,7 @@ class NotificationService {
       androidScheduleMode: scheduleMode,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      // Her gün aynı saatte tekrar et
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
