@@ -3,6 +3,7 @@ name: CI / CD
 on:
   push:
     branches: ["main", "master"]
+    tags: ["v*.*.*"]          # v1.0.0, v1.2.3 gibi tag'lerde release çıkar
   pull_request:
     branches: ["main", "master"]
 
@@ -13,11 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.41.7"
           channel: stable
@@ -27,11 +26,11 @@ jobs:
         working-directory: openquit
         run: flutter pub get
 
-      - name: Analyze (lint)
+      - name: Analyze
         working-directory: openquit
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      - name: Run tests
+      - name: Test
         working-directory: openquit
         run: flutter test --coverage
 
@@ -48,17 +47,14 @@ jobs:
     needs: test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.41.7"
           channel: stable
@@ -68,7 +64,7 @@ jobs:
         working-directory: openquit
         run: flutter pub get
 
-      - name: Build APK (release)
+      - name: Build APK
         working-directory: openquit
         run: flutter build apk --release --split-per-abi
 
@@ -77,21 +73,20 @@ jobs:
         with:
           name: android-apks
           path: openquit/build/app/outputs/flutter-apk/*.apk
-          retention-days: 30
+          retention-days: 7
 
-  # ── 3. GitHub Release (sadece main/master push'ta) ─────────────────────────
+  # ── 3. GitHub Release (sadece v*.*.* tag push'larında) ────────────────────
   release:
     name: GitHub Release
     runs-on: ubuntu-latest
     needs: build-android
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: startsWith(github.ref, 'refs/tags/v')
 
     permissions:
       contents: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download APK artifacts
         uses: actions/download-artifact@v4
@@ -99,33 +94,12 @@ jobs:
           name: android-apks
           path: apks/
 
-      - name: Get version from pubspec
-        id: version
-        run: |
-          VERSION=$(grep '^version:' openquit/pubspec.yaml | sed 's/version: //')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "OpenQuit ${{ steps.version.outputs.version }} (#${{ github.run_number }})"
-          body: |
-            ## 🚀 Otomatik Build
-
-            **Commit:** ${{ github.sha }}
-            **Branch:** ${{ github.ref_name }}
-            **Tarih:** ${{ github.event.head_commit.timestamp }}
-
-            ### Değişiklikler
-            ${{ github.event.head_commit.message }}
-
-            ### İndirme
-            Aşağıdaki APK dosyalarından cihazınıza uygun olanı indirin:
-            - `arm64-v8a` → Modern Android telefonlar (önerilen)
-            - `armeabi-v7a` → Eski Android telefonlar
-            - `x86_64` → Emülatör
+          tag_name: ${{ github.ref_name }}
+          name: "OpenQuit ${{ github.ref_name }}"
+          generate_release_notes: true   # commit'lerden otomatik changelog
           files: apks/*.apk
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, '-') }}  # v1.0.0-beta → prerelease
