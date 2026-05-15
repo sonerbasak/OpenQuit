@@ -158,9 +158,12 @@ class NotificationService {
     }
 
     final quote = _randomMotivation();
+
+    // alarmClock modu: kullanıcıya görünür alarm, Doze/battery optimization'ı bypass eder.
+    // Exact alarm izni yoksa inexact'a düş.
     final hasExact = await _hasExactAlarmPermission();
     final scheduleMode = hasExact
-        ? AndroidScheduleMode.exactAllowWhileIdle
+        ? AndroidScheduleMode.alarmClock
         : AndroidScheduleMode.inexactAllowWhileIdle;
 
     await _plugin.zonedSchedule(
@@ -173,8 +176,8 @@ class NotificationService {
           _channelMotivation,
           'Daily Motivation',
           channelDescription: 'Daily motivational reminders',
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
+          importance: Importance.high,
+          priority: Priority.high,
           styleInformation: BigTextStyleInformation(quote),
         ),
         iOS: const DarwinNotificationDetails(
@@ -185,7 +188,6 @@ class NotificationService {
       androidScheduleMode: scheduleMode,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      // Her gün aynı saatte tekrar et
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }

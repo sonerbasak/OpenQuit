@@ -246,12 +246,9 @@ class _SettingsView extends StatelessWidget {
     final cubit = context.read<SettingsCubit>();
 
     if (enable) {
-      // İzin iste
       final granted = await notif.requestPermission();
       if (!granted) {
-        if (context.mounted) {
-          _showPermissionDenied(context);
-        }
+        if (context.mounted) _showPermissionDenied(context);
         return;
       }
       await cubit.setDailyMotivation(enabled: true);
@@ -260,12 +257,9 @@ class _SettingsView extends StatelessWidget {
         minute: s.notificationMinute,
       );
       if (context.mounted) {
-        _showSnack(
-          context,
-          '✅ Daily motivation scheduled at '
-          '${s.notificationHour.toString().padLeft(2, '0')}:'
-          '${s.notificationMinute.toString().padLeft(2, '0')}',
-        );
+        final h = s.notificationHour.toString().padLeft(2, '0');
+        final m = s.notificationMinute.toString().padLeft(2, '0');
+        _showSnack(context, '✅ Daily motivation scheduled at $h:$m');
       }
     } else {
       await cubit.setDailyMotivation(enabled: false);
