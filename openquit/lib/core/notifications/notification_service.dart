@@ -226,26 +226,6 @@ class NotificationService {
     );
   }
 
-  // ─── Debug ────────────────────────────────────────────────────────────────
-
-  /// Scheduled notification'ların zamanını döner — debug için.
-  Future<String> debugScheduledInfo() async {
-    if (!_initialized) await init();
-
-    final pending = await _plugin.pendingNotificationRequests();
-    if (pending.isEmpty) return 'No scheduled notifications.';
-
-    final tzNow = tz.TZDateTime.now(tz.local);
-    final buf = StringBuffer();
-    buf.writeln('Local timezone: ${tz.local.name}');
-    buf.writeln('Now (local): $tzNow');
-    buf.writeln('Pending: ${pending.length}');
-    for (final n in pending) {
-      buf.writeln('  id=${n.id} title="${n.title}" body="${n.body}"');
-    }
-    return buf.toString();
-  }
-
   Future<void> sendTestNotification() async {
     if (!_initialized) await init();
 

@@ -13,7 +13,6 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SettingsCubit root BlocProvider'dan geliyor
     return const _SettingsView();
   }
 }
@@ -63,8 +62,7 @@ class _SettingsView extends StatelessWidget {
                     const Gap(10),
                     _GlassCard(
                       child: ListTile(
-                        leading:
-                            _GradientIcon(Icons.attach_money_rounded),
+                        leading: _GradientIcon(Icons.attach_money_rounded),
                         title: const Text(
                           'Currency',
                           style: TextStyle(color: Colors.white),
@@ -114,8 +112,7 @@ class _SettingsView extends StatelessWidget {
                           ),
 
                           if (s.dailyMotivationEnabled) ...[
-                            const Divider(
-                                color: Colors.white12, height: 1),
+                            const Divider(color: Colors.white12, height: 1),
                             ListTile(
                               leading: _GradientIcon(
                                 Icons.access_time_rounded,
@@ -165,58 +162,7 @@ class _SettingsView extends StatelessWidget {
                             ),
                             value: s.milestoneNotificationsEnabled,
                             activeThumbColor: AppTheme.gradientStart,
-                            onChanged: (v) =>
-                                _toggleMilestone(context, v),
-                          ),
-
-                          const Divider(color: Colors.white12, height: 1),
-
-                          // Test notification button
-                          ListTile(
-                            leading: _GradientIcon(
-                              Icons.notifications_active_rounded,
-                              gradient: AppTheme.primaryGradient,
-                            ),
-                            title: const Text(
-                              'Send Test Notification',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            subtitle: Text(
-                              'Verify notifications are working',
-                              style: TextStyle(
-                                color: Colors.white.withAlpha(120),
-                                fontSize: 12,
-                              ),
-                            ),
-                            trailing: Icon(
-                              Icons.chevron_right_rounded,
-                              color: Colors.white.withAlpha(80),
-                            ),
-                            onTap: () => _sendTest(context),
-                          ),
-                          const Divider(color: Colors.white12, height: 1),
-                          // Debug: scheduled notifications
-                          ListTile(
-                            leading: _GradientIcon(
-                              Icons.bug_report_outlined,
-                              gradient: AppTheme.blueGradient,
-                            ),
-                            title: const Text(
-                              'Debug: Scheduled Info',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            subtitle: Text(
-                              'Show pending notification details',
-                              style: TextStyle(
-                                color: Colors.white.withAlpha(120),
-                                fontSize: 12,
-                              ),
-                            ),
-                            trailing: Icon(
-                              Icons.chevron_right_rounded,
-                              color: Colors.white.withAlpha(80),
-                            ),
-                            onTap: () => _showDebugInfo(context),
+                            onChanged: (v) => _toggleMilestone(context, v),
                           ),
                         ],
                       ),
@@ -307,51 +253,6 @@ class _SettingsView extends StatelessWidget {
     }
   }
 
-  Future<void> _sendTest(BuildContext context) async {
-    final notif = getIt<NotificationService>();
-    final granted = await notif.requestPermission();
-    if (!granted) {
-      if (context.mounted) _showPermissionDenied(context);
-      return;
-    }
-    await notif.sendTestNotification();
-    if (context.mounted) {
-      _showSnack(context, '📬 Test notification sent!');
-    }
-  }
-
-  Future<void> _showDebugInfo(BuildContext context) async {
-    final info = await getIt<NotificationService>().debugScheduledInfo();
-    if (!context.mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
-        title: const Text(
-          'Scheduled Notifications',
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        content: SingleChildScrollView(
-          child: Text(
-            info,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close',
-                style: TextStyle(color: Color(0xFF7C5CFC))),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _pickTime(
     BuildContext context,
     int hour,
@@ -401,7 +302,6 @@ class _SettingsView extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      // Modal yeni bir overlay route — cubit'i açıkça geçmek gerekir
       builder: (_) => BlocProvider.value(
         value: cubit,
         child: const _CurrencyPicker(),
@@ -483,11 +383,8 @@ class _CurrencyPicker extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    gradient:
-                        isSelected ? AppTheme.primaryGradient : null,
-                    color: isSelected
-                        ? null
-                        : Colors.white.withAlpha(10),
+                    gradient: isSelected ? AppTheme.primaryGradient : null,
+                    color: isSelected ? null : Colors.white.withAlpha(10),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -509,15 +406,13 @@ class _CurrencyPicker extends StatelessWidget {
                     color: isSelected
                         ? Colors.white
                         : Colors.white.withAlpha(180),
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.w400,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
                 subtitle: Text(
                   c.code,
-                  style:
-                      TextStyle(color: Colors.white.withAlpha(80)),
+                  style: TextStyle(color: Colors.white.withAlpha(80)),
                 ),
                 trailing: isSelected
                     ? ShaderMask(
