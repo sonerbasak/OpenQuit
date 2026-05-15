@@ -194,6 +194,30 @@ class _SettingsView extends StatelessWidget {
                             ),
                             onTap: () => _sendTest(context),
                           ),
+                          const Divider(color: Colors.white12, height: 1),
+                          // Debug: scheduled notifications
+                          ListTile(
+                            leading: _GradientIcon(
+                              Icons.bug_report_outlined,
+                              gradient: AppTheme.blueGradient,
+                            ),
+                            title: const Text(
+                              'Debug: Scheduled Info',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            subtitle: Text(
+                              'Show pending notification details',
+                              style: TextStyle(
+                                color: Colors.white.withAlpha(120),
+                                fontSize: 12,
+                              ),
+                            ),
+                            trailing: Icon(
+                              Icons.chevron_right_rounded,
+                              color: Colors.white.withAlpha(80),
+                            ),
+                            onTap: () => _showDebugInfo(context),
+                          ),
                         ],
                       ),
                     ),
@@ -294,6 +318,38 @@ class _SettingsView extends StatelessWidget {
     if (context.mounted) {
       _showSnack(context, '📬 Test notification sent!');
     }
+  }
+
+  Future<void> _showDebugInfo(BuildContext context) async {
+    final info = await getIt<NotificationService>().debugScheduledInfo();
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A2332),
+        title: const Text(
+          'Scheduled Notifications',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            info,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close',
+                style: TextStyle(color: Color(0xFF7C5CFC))),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickTime(
